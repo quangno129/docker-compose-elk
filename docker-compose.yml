@@ -1,0 +1,158 @@
+version: '3.2'
+services:
+  es01master:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+    container_name: es01master
+    environment:
+      - node.name=es01master
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01master,es02master,es03data,es04data,es05ingest  #provide ip,host
+      - cluster.initial_master_nodes=es01master,es02master #setup node run first
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=congaden
+      - xpack.security.enabled=true
+      - xpack.license.self_generated.type=trial
+      - node.roles=master
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /home/quang/data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+
+  es02master:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+    container_name: es02master
+    environment:
+      - node.name=es02master
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01master,es02master,es03data,es04data,es05ingest
+      - cluster.initial_master_nodes=es01master,es02master
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=congaden
+      - xpack.security.enabled=true
+      - xpack.license.self_generated.type=trial
+      - node.roles=master
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /home/quang/data02:/usr/share/elasticsearch/data
+
+    networks:
+      - elastic
+  es03data:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+    container_name: es03data
+    environment:
+      - node.name=es03data
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01master,es02master,es03data,es04data,es05ingest
+      - cluster.initial_master_nodes=es01master,es02master
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=congaden
+      - xpack.security.enabled=true
+      - xpack.license.self_generated.type=trial
+      - node.roles=data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /home/quang/data03:/usr/share/elasticsearch/data
+      # - /home/quang/data03:/usr/share/elasticsearch/logs/es-docker-cluster.log
+    networks:
+      - elastic
+  es04data:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+    container_name: es04data
+    environment:
+      - node.name=es04data
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01master,es02master,es03data,es04data,es05ingest
+      - cluster.initial_master_nodes=es01master,es02master
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=congaden
+      - xpack.security.enabled=true
+      - xpack.license.self_generated.type=trial
+      - node.roles=data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /home/quang/data04:/usr/share/elasticsearch/data
+      # - /home/quang/data04:/usr/share/elasticsearch/logs/es-docker-cluster.log
+    networks:
+      - elastic
+  es05ingest:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+    container_name: es05ingest
+    environment:
+      - node.name=es05ingest
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01master,es02master,es03data,es04data,es05ingest
+      - cluster.initial_master_nodes=es01master,es02master
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=congaden
+      - xpack.security.enabled=true
+      - xpack.license.self_generated.type=trial
+      - node.roles=ingest
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /home/quang/data05:/usr/share/elasticsearch/data
+      # - /home/quang/data04:/usr/share/elasticsearch/logs/es-docker-cluster.log
+    networks:
+      - elastic
+  es06coordinating:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
+    container_name: es06coordinating
+    environment:
+      - node.name=es06coordinating
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01master,es02master,es03data,es04data,es05ingest,es06coordinating
+      - cluster.initial_master_nodes=es01master,es02master
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=congaden
+      - xpack.security.enabled=true
+      - xpack.license.self_generated.type=trial
+      - node.roles=
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /home/quang/data06:/usr/share/elasticsearch/data
+      # - /home/quang/data04:/usr/share/elasticsearch/logs/es-docker-cluster.log
+    networks:
+      - elastic
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.13.4
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es05ingest:9200
+      ELASTICSEARCH_HOSTS: '["http://es01master:9200","http://es02master:9200","http://es03data:9200","http://es04data:9200","http://es05ingest:9200","http://es06coordinating:9200"]'
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: congaden
+      xpack.security.enabled: "true"
+    networks:
+      - elastic
+networks:
+  elastic:
+    driver: bridge
