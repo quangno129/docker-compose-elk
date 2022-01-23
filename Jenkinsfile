@@ -1,13 +1,13 @@
 pipeline { 
 agent {
          node {
-        label 'docker-build'
+        label 'clouldaws'
          }
 }
     stages {
         stage('Build') { 
             steps { 
-                sh 'make' 
+                sh 'docker-compose up' 
             }
         }
 
