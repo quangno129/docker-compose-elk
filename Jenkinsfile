@@ -1,13 +1,11 @@
-pipeline { 
-agent {
-         node {
-        label 'cloudaws'
-         }
-}
+pipeline {
+    agent {
+        docker { image 'node:16.13.1-alpine' }
+    }
     stages {
         stage('Build') { 
             steps { 
-                sh 'docker-compose up' 
+                sh 'docker-compose up -d' 
             }
         }
 
