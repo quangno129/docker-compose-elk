@@ -1,10 +1,9 @@
 pipeline {
-    agent none
+    agent {
+        label 'linux'
+    }
     stages{
         stage('Build') { 
-            agent {
-                docker { image 'sebp/elk:latest' }
-            }
             steps { 
                 sh 'docker-compose up -d' 
             }
